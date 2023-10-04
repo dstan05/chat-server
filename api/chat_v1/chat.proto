@@ -5,8 +5,9 @@ package chat;
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
-option go_package = "";
-service Auth {
+option go_package = "github.com/dstan05/chat-server/pkg/grpc";
+
+service Chat {
   rpc Create(CreateRequest) returns (CreateResponse);
   rpc Delete(DeleteRequest) returns (google.protobuf.Empty);
   rpc SendMessage(SendMessageRequest) returns (google.protobuf.Empty);

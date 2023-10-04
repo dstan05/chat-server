@@ -1,11 +1,13 @@
 package main
 
 import (
-	"fmt"
-
-	"github.com/fatih/color"
+	"github.com/dstan05/chat-server/internal/server"
 )
 
 func main() {
-	fmt.Println(color.GreenString("Hello, world!"))
+	s, err := server.Init()
+	if err != nil {
+		panic(err)
+	}
+	defer s.Stop()
 }
