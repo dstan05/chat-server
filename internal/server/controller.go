@@ -11,14 +11,14 @@ type Routes struct {
 	chat.UnimplementedChatServer
 }
 
-func (s *Routes) Create(_ context.Context, _ *chat.CreateRequest) (*chat.CreateResponse, error) {
+func (r *Routes) Create(_ context.Context, _ *chat.CreateRequest) (*chat.CreateResponse, error) {
 	return &chat.CreateResponse{Id: gofakeit.Int64()}, nil
 }
 
-func (s *Routes) Delete(_ context.Context, _ *chat.DeleteRequest) (*empty.Empty, error) {
+func (r *Routes) Delete(_ context.Context, _ *chat.DeleteRequest) (*empty.Empty, error) {
 	return &empty.Empty{}, nil
 }
 
-func (s *Routes) SendMessage(_ context.Context, _ *chat.SendMessageRequest) (*empty.Empty, error) {
+func (r *Routes) SendMessage(_ context.Context, _ *chat.SendMessageRequest) (*empty.Empty, error) {
 	return &empty.Empty{}, nil
 }

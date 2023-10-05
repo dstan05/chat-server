@@ -30,5 +30,3 @@ message SendMessageRequest {
   string text = 2;
   google.protobuf.Timestamp timestamp = 3;
 }
-
-

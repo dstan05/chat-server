@@ -14,9 +14,9 @@ func main() {
 		panic(err)
 	}
 
-	defer func(s *server.Server) {
+	defer func() {
 		if _, err := s.Stop(); err != nil {
 			panic(err)
 		}
-	}(&s)
+	}()
 }

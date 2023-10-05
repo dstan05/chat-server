@@ -16,33 +16,34 @@ type Server struct {
 }
 
 func Init() (Server, error) {
-	server := Server{}
-	server.grps = grpc.NewServer()
-	return server, nil
+	s := Server{}
+	s.grps = grpc.NewServer()
+
+	reflection.Register(s.grps)
+	chat.RegisterChatServer(s.grps, &Routes{})
+
+	return s, nil
 }
 
-func (server *Server) Run() error {
-	reflection.Register(server.grps)
-	chat.RegisterChatServer(server.grps, &Routes{})
-
+func (s *Server) Run() error {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return err
 	}
 
-	server.listener = lis
-	if err = server.grps.Serve(lis); err != nil {
+	s.listener = lis
+	if err = s.grps.Serve(lis); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (server *Server) Stop() (Server, error) {
-	server.grps.Stop()
-	if err := server.listener.Close(); err != nil {
-		return *server, err
+func (s *Server) Stop() (Server, error) {
+	s.grps.Stop()
+	if err := s.listener.Close(); err != nil {
+		return *s, err
 	}
 
-	return *server, nil
+	return *s, nil
 }
