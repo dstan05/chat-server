@@ -9,5 +9,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer s.Stop()
+
+	if err = s.Run(); err != nil {
+		panic(err)
+	}
+
+	defer func(s *server.Server) {
+		if _, err := s.Stop(); err != nil {
+			panic(err)
+		}
+	}(&s)
 }
