@@ -13,6 +13,13 @@ func main() {
 		panic(err)
 	}
 
+	pgx, err := pg.Connect(c.PGConfig)
+	defer func() {
+		if err := pgx.Conn.Close(pgx.Ctx); err != nil {
+			panic(err)
+		}
+	}()
+
 	s, err := server.Init(&c.GrpcConfig)
 	if err != nil {
 		panic(err)
@@ -24,13 +31,6 @@ func main() {
 
 	defer func() {
 		if _, err := s.Stop(); err != nil {
-			panic(err)
-		}
-	}()
-
-	pgx, err := pg.Connect(c.PGConfig)
-	defer func() {
-		if err := pgx.Conn.Close(pgx.Ctx); err != nil {
 			panic(err)
 		}
 	}()

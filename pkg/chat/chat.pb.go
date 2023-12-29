@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.28.1
 // 	protoc        v3.6.1
-// source: chat.proto
+// source: message.proto
 
 package chat
 
@@ -279,21 +279,21 @@ func file_chat_proto_rawDescGZIP() []byte {
 
 var file_chat_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_chat_proto_goTypes = []interface{}{
-	(*CreateRequest)(nil),       // 0: chat.CreateRequest
-	(*CreateResponse)(nil),      // 1: chat.CreateResponse
-	(*DeleteRequest)(nil),       // 2: chat.DeleteRequest
-	(*SendMessageRequest)(nil),  // 3: chat.SendMessageRequest
+	(*CreateRequest)(nil),       // 0: message.CreateRequest
+	(*CreateResponse)(nil),      // 1: message.CreateResponse
+	(*DeleteRequest)(nil),       // 2: message.DeleteRequest
+	(*SendMessageRequest)(nil),  // 3: message.SendMessageRequest
 	(*timestamp.Timestamp)(nil), // 4: google.protobuf.Timestamp
 	(*empty.Empty)(nil),         // 5: google.protobuf.Empty
 }
 var file_chat_proto_depIdxs = []int32{
-	4, // 0: chat.SendMessageRequest.timestamp:type_name -> google.protobuf.Timestamp
-	0, // 1: chat.Chat.Create:input_type -> chat.CreateRequest
-	2, // 2: chat.Chat.Delete:input_type -> chat.DeleteRequest
-	3, // 3: chat.Chat.SendMessage:input_type -> chat.SendMessageRequest
-	1, // 4: chat.Chat.Create:output_type -> chat.CreateResponse
-	5, // 5: chat.Chat.Delete:output_type -> google.protobuf.Empty
-	5, // 6: chat.Chat.SendMessage:output_type -> google.protobuf.Empty
+	4, // 0: message.SendMessageRequest.timestamp:type_name -> google.protobuf.Timestamp
+	0, // 1: message.Chat.Create:input_type -> message.CreateRequest
+	2, // 2: message.Chat.Delete:input_type -> message.DeleteRequest
+	3, // 3: message.Chat.SendMessage:input_type -> message.SendMessageRequest
+	1, // 4: message.Chat.Create:output_type -> message.CreateResponse
+	5, // 5: message.Chat.Delete:output_type -> google.protobuf.Empty
+	5, // 6: message.Chat.SendMessage:output_type -> google.protobuf.Empty
 	4, // [4:7] is the sub-list for method output_type
 	1, // [1:4] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
