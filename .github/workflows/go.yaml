@@ -1,67 +1,75 @@
-name: Go
+#
+name: Create and publish a Docker image
 
+# Configures this workflow to run every time a change is pushed to the branch called `release`.
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
 
+# Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  CONTAINER_NAME: "message-server-containers"
+
+# There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:
-  build-and-test:
+  build-and-push-image:
     runs-on: ubuntu-latest
+    # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
+    permissions:
+      contents: read
+      packages: write
+      # 
     steps:
-        - uses: actions/checkout@v3
-
-        - name: Set up Go
-          uses: actions/setup-go@v4
-          with:
-            go-version: '1.20'
-            cache-dependency-path: go.sum
-
-        - name: Build
-          run: go build -o ./bin/ -v ./...
-
-        - name: Test
-          run: go test -v ./...
-
-  linter:
-    name: lint
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      # Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
+      - name: Log in to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      # This step uses [docker/metadata-action](https://github.com/docker/metadata-action#about) to extract tags and labels that will be applied to the specified image. The `id` "meta" allows the output of this step to be referenced in a subsequent step. The `images` value provides the base name for the tags and labels.
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
+      # It uses the `context` parameter to define the build's context as the set of files located in the specified path. For more information, see "[Usage](https://github.com/docker/build-push-action#usage)" in the README of the `docker/build-push-action` repository.
+      # It uses the `tags` and `labels` parameters to tag and label the image with the output from the "meta" step.
+      - name: Build and push Docker image
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          labels: ${{ steps.meta.outputs.labels }}
+  deploy-image:
     runs-on: ubuntu-latest
+    needs: build-and-push-image
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v4
+      - name: Deploy to Selectel Cloud via SSH action
+        uses: appleboy/ssh-action@v1.0.0
         with:
-          go-version: '1.20'
-          cache: false
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          # Require: The version of golangci-lint to use.
-          # When `install-mode` is `binary` (default) the value can be v1.2 or v1.2.3 or `latest` to use the latest version.
-          # When `install-mode` is `goinstall` the value can be v1.2.3, `latest`, or the hash of a commit.
-          version: v1.53
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSHKEY }}
+          envs: IMAGE_NAME,REGISTRY,GITHUB_SHA,CONTAINER_NAME
+          script: |
+            # Login into Selectel Registry
+            docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }} $REGISTRY
 
-          # Optional: working directory, useful for monorepos
-          # working-directory: somedir
+            # Stop running container
+            docker stop $CONTAINER_NAME
 
-          # Optional: golangci-lint command line arguments.
-          #
-          # Note: By default, the `.golangci.yml` file should be at the root of the repository.
-          # The location of the configuration file can be changed by using `--config=`
-          args: --timeout=30m --config=./.golangci.pipeline.yaml --issues-exit-code=0
+            # Remove old container
+            docker rm $CONTAINER_NAME
 
-          # Optional: show only new issues if it's a pull request. The default value is `false`.
-          # only-new-issues: true
-
-          # Optional: if set to true, then all caching functionality will be completely disabled,
-          #           takes precedence over all other caching options.
-          # skip-cache: true
-
-          # Optional: if set to true, then the action won't cache or restore ~/go/pkg.
-          # skip-pkg-cache: true
-
-          # Optional: if set to true, then the action won't cache or restore ~/.cache/go-build.
-          # skip-build-cache: true
-
-          # Optional: The mode to install golangci-lint. It can be 'binary' or 'goinstall'.
-          # install-mode: "goinstall"
+            # Run a new container from a new image
+            docker run -d -p 50052:2020 --name $CONTAINER_NAME -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
